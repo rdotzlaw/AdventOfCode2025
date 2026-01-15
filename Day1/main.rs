@@ -1,4 +1,4 @@
-use std::fs::read_to_string;
+use std::{fs::read_to_string};
 
 // rust readlines snippet from rust docs
 fn read_lines(filename: &str) -> Vec<String> {
@@ -18,38 +18,44 @@ fn main() {
     let lines1: Vec<String> = read_lines("input.txt");
     part1(lines1);
     // .split_off
-    let lines2: Vec<String> = read_lines("test.txt");
+    let lines2: Vec<String> = read_lines("input.txt");
     part2(lines2);
 }
 
 fn part2(lines: Vec<String>) {
     let mut dial = 50;
     let mut count = 0;
+
     for mut l in lines {
-        let mut shift = 0;
-        let mut r_flag = true;
+        let shift: i32; // initialize, but don't set
+        let step: i32;
         if l.starts_with('R') {
+            step = 1;
             shift = l.split_off(1).parse::<i32>().unwrap();
         } else if l.starts_with('L') {
+            step = -1;
             shift = -l.split_off(1).parse::<i32>().unwrap();
-            r_flag = false;
+        } else {
+            panic!("Invalid input")
         }
-        // determine how many times `dial` will pass 0 with `shift` applied to it
+        count = count + (shift.abs() / 100); // add the full rotations
+        //println!("dial: {}, count: {}, shift: {}, step: {}", dial, count, shift, step);
+        for _ in 0..(shift.abs()%100) { // loop for remaining values
+            dial = dial + step;
+            if dial % 100 == 0 {
+                count = count + 1;
+            }
+        }
+        while dial >= 100 {
+            dial = dial - 100;
+        }
+        while dial < 0 {
+            dial = dial + 100;
+        }
 
-        // find `distance` to 0
-        let full_distance = dial + shift;
-        let distance = shift % 100;
-        println!("dial: {}, count: {}", dial, count);
-        println!("shift: {}, full: {}, dist: {}", shift, full_distance, distance);
-        if (r_flag && full_distance > 99) || (!r_flag && full_distance <= 0) {
-            // we'll cross 0 at least once when turning dial
-            println!("crossed 0 ");
-            count = count + ((full_distance - distance) / 100);
-        }
-        dial = (dial + shift) % 100;
-        println!("");
     }
-    println!("count: {}", count); // 5591468
+
+    println!("part2 count: {}, {}", count, dial); // 
 }
 
 fn part1(lines: Vec<String>) {
@@ -70,6 +76,6 @@ fn part1(lines: Vec<String>) {
         }
         //println!(":{}", dial);
     }
-    println!("count: {}", count);
+    println!("part1 count: {}", count);
     // 1172
 }
