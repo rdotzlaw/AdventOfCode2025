@@ -1,4 +1,4 @@
-use std::{fs::read_to_string};
+use std::{cell::RefCell, cmp::min, fs::read_to_string};
 
 // rust readlines snippet from rust docs
 fn read_lines(filename: &str) -> Vec<String> {
@@ -27,48 +27,34 @@ fn part2() {
         let mut index: usize = 0;
         let mut indicies: Vec<usize> = vec![0,0,0,0,0,0,0,0,0,0,0,0];
         // same as previous question, but this time its 12 instead of 2 digits
-        let mut line_arr: Vec<u8> = line.into_bytes(); // unsafe { Vec::<u8>::from(line.as_bytes_mut()) }; // not actually unsafe, all ascii, so chars are u8 single byte
+        let mut line_arr = line.into_bytes(); // unsafe { Vec::<u8>::from(line.as_bytes_mut()) }; // not actually unsafe, all ascii, so chars are u8 single byte
         line_arr.iter_mut().for_each(|i| *i = *i - 48); // from ascii code -> digit
         // line_arr is now an array of bytes where each element is equal to the digit in the input string
         // println!("{:?}", line_arr);
-        for i in 0..line_len {
-            let current = line_arr[i]; // value to compare
-            if index == 12 {
-                break;
-            }
-            //println!("current: {}", current);
-            // check value against all previous max[j] to see if it would be better there
-            for j in 0..(index+1) { // index will max out at 11, so max loop iters is 0->11 (12)
-                // if the current value is greater than max[j]
-                if debug {
-                    println!("{} --- current: {}, max[{}]: {}, max.len: {}, line_len: {}, index: {}", i, current, j, max[j], max.len(), line_len, index);
-                    println!("{:?}", max);
-                    println!("---> {}: current > max[{}]\n---> {}: bounds", current > max[j], j, (line_len - i) > (12 - j));
+        
+        let mut ind = 0;
+        for i in 0..12 {
+            let remaining = 12 - i;
+            // last valid index to pick from
+            let end = line_len - remaining;
+            // find max digit and index in line_arr[pos..=end]
+            let mut val = 0;
+            let mut index = ind;
+            for j in ind..=end {
+                if line_arr[j] > val {
+                    val = line_arr[j]; 
+                    index = j;
                 }
-                if current > max[j] {
-                    // and there is still enough room in line_arr to assign to the remaining values max[j+1..]
-                    if (line_len - i) >= (12 - j) { // potential off-by-one error, maybe >=?
-                        // TODO: Problem with bounds checking
-                        // we have enough room
-                        max[j] = current;
-                        indicies[j] = i;
-                        if j == index && index < 11 { 
-                            // only increase index if we edited the `max` value at the index
-                            // and if index can still increase, otherwise, keep it the same
-                            index += 1;
-                        }
-                        
-                        break;
-                    } else { // not enough room for (12 - j) elements from line_arr
-                        continue; // we can't use current for max[j], maybe check max[j+1]
-                    } // this could be simplified, but it's hear for clarity
-                } // else, not greater than max[j], check max[j+1]
             }
-            
+            max[i] = val;
+            ind = index + 1;
         }
+
         // add to result
-        println!("add to result");
-        println!("--> max: {:?}\n--> ind: {:?}", max, indicies);
+        if debug {
+            println!("--> max: {:?}\n--> ind: {:?}", max, indicies);
+            println!("add to result");
+        }
         let mut max_value: u64 = 0;
         let base: u64 = 10;
         for i  in 0..12 {
